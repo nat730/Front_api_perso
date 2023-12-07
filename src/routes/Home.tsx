@@ -1,37 +1,89 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
+
+interface Game {
+  id: number;
+  name: string;
+  description: string;
+}
 
 export default function Home() {
-    const [freeGames, setFreeGames] = useState([])
-    const [officialGames, setOfficialGames] = useState([])
+  const [freeGames, setFreeGames] = useState<Game[]>([]);
+  const [officialGames, setOfficialGames] = useState<Game[]>([]);
+  const [_, setToken] = useState<string>();
 
-    useEffect(() => {
-        const getAllGames = async () => {
-            // Récupérez les jeux gratuits avec la route GET /api/free-games
-            // Récupérez les jeux officiels avec la route /api/games/official
-            
-            // stockez-les dans le state freeGames
-            // stockez-les dans le state officialGames
+  useEffect(() => {
+    const authenticateAndFetchGames = async () => {
+      try {
+        const authResponse = await fetch("http://localhost:3000/api/auth", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: "nat7303@hotmail.fr",
+            password: "PasAdmin12",
+          }),
+        });
+
+        if (authResponse.ok) {
+          const authData = await authResponse.json();
+          const authToken = authData.token;
+          setToken(authToken);
+
+          const [freeGamesResponse, officialGamesResponse] = await Promise.all([
+            fetch("http://localhost:3000/api/freeGames"),
+            fetch("http://localhost:3000/api/officialGames", {
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+              },
+            }),
+          ]);
+
+          const freeGamesData = await freeGamesResponse.json();
+          const officialGamesData = await officialGamesResponse.json();
+
+          setFreeGames(freeGamesData);
+          setOfficialGames(officialGamesData);
+        } else {
+          console.error("Authentication failed");
         }
-        getAllGames()
-    }, [])
+      } catch (error) {
+        console.error("Error fetching games:", error);
+      }
+    };
 
-    return (
-        <div>
-            <h1>Bienvenue dans votre collection de jeux</h1>
+    authenticateAndFetchGames();
+  }, []);
 
-            <div className="free-games">
-                <h2>Jeux gratuits</h2>
-                <div className="free-games-list-content">
-                    {/* Affichez les jeux gratuits ici */}
-                </div>
+  return (
+    <div>
+      <h1>Bienvenue dans votre collection de jeux</h1>
+
+      <div className="free-games">
+        <h2>Jeux gratuits</h2>
+        <div className="free-games-list-content">
+          {freeGames.map((game) => (
+            <div key={game.id}>
+              <h3>{game.name}</h3>
+              <p>{game.description}</p>
             </div>
-
-            <div className="official-games">
-                <h2>Jeux officiels</h2>
-                <div className="official-games-list-content">
-                    {/* Affichez les jeux officiels ici */}
-                </div>
-            </div>
+          ))}
         </div>
-    )
+      </div>
+
+      {officialGames.length > 0 && (
+        <div className="official-games">
+          <h2>Jeux officiels</h2>
+          <div className="official-games-list-content">
+            {officialGames.map((game) => (
+              <div key={game.id}>
+                <h3>{game.name}</h3>
+                <p>{game.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

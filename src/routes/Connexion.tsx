@@ -1,38 +1,57 @@
 import { useCallback, useState } from "react";
 
 export default function Connexion() {
-    const [login, setLogin] = useState('')
-    const [password, setPassword] = useState('')
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-    const changeLogin = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        setLogin(event.target.value)
-    }, [])
+  const changeLogin = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setIdentifier(event.target.value);
+  }, []);
 
-    const changePassword = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        setPassword(event.target.value)
-    }, [])
+  const changePassword = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(event.target.value);
+  }, []);
 
-    const handleConnexion = useCallback(() => {
-        // Lancez une requête POST vers l'API avec les données de connexion
+  const handleConnexion = useCallback(async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/local", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          identifier: identifier,
+          password: password,
+        }),
+      });
 
-        // Si la connexion est réussie,  stockez le token dans le localStorage
-        // Et redirigez l'utilisateur vers la page d'accueil
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem("token", data.jwtToken);
+        window.location.href = "/home";
+      } else {
+        setError("Identifiants invalides. Veuillez réessayer.");
+      }
+    } catch (error) {
+      console.error("Error during login:", error);
+      setError("Une erreur s'est produite. Veuillez réessayer.");
+    }
+  }, [identifier, password]);
 
-        // Si la connexion est échouée, affichez un message d'erreur
-        
-    }, [login, password])
-    return (
-        <div>
-            <h1>Connexion</h1>
-            <div className="form-field">
-                <label htmlFor="login">Entrez votre identifiant :</label>
-                <input type="text" name="login" value={login} onChange={changeLogin} />
-            </div>
-            <div className="form-field">
-                <label htmlFor="password">Entrez votre mot de passe : </label>
-                <input type="password" name="password" value={password} onChange={changePassword} />
-            </div>
-            <button onClick={handleConnexion}>Connexion</button>
-        </div>
-    );
+  return (
+    <div>
+      <h1>Connexion</h1>
+      {error && <div style={{ color: "red" }}>{error}</div>}
+      <div className="form-field">
+        <label htmlFor="identifier">Entrez votre identifiant :</label>
+        <input type="text" name="identifier" value={identifier} onChange={changeLogin} />
+      </div>
+      <div className="form-field">
+        <label htmlFor="password">Entrez votre mot de passe : </label>
+        <input type="password" name="password" value={password} onChange={changePassword} />
+      </div>
+      <button onClick={handleConnexion}>Connexion</button>
+    </div>
+  );
 }
