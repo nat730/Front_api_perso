@@ -3,15 +3,20 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 
 import Connexion from './routes/Connexion'
 import Home from './routes/Home'
+import Inscription from './routes/inscription'
 
 const router = createBrowserRouter([
   {
-    path: '/',
+    path: '/connexion',
     element: <Connexion />,
   },
   {
     path: '/home',
     element: <Home />
+  },
+  {
+    path:'/register',
+    element: <Inscription />
   }
 ])
 

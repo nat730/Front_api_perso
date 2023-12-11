@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Connexion() {
+  const navigate = useNavigate()
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -29,7 +31,7 @@ export default function Connexion() {
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem("token", data.jwtToken);
-        window.location.href = "/home";
+        navigate("/home");
       } else {
         setError("Identifiants invalides. Veuillez réessayer.");
       }
